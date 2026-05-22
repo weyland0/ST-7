@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Maven
+target/
+**/.mvn/jvm.config
+**/.mvn/maven.config
+
+# Application output
+result/
+
+# IDE/editor files
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log

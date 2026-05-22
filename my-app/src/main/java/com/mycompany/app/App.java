@@ -8,16 +8,27 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 
-public class App {
+public final class App {
+
+    private static final String PASSWORD_GENERATOR_URL =
+            "https://www.calculator.net/password-generator.html";
+    private static final By PASSWORD_RESULT_SELECTOR =
+            By.cssSelector("#resultid .verybigtext b");
+    private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(20);
+
+    private App() {
+    }
+
     public static void main(String[] args) {
         WebDriver webDriver = new ChromeDriver();
         try {
-            webDriver.get("https://www.calculator.net/password-generator.html");
-            WebDriverWait wait = new WebDriverWait(webDriver, Duration.ofSeconds(20));
+            webDriver.get(PASSWORD_GENERATOR_URL);
+
+            WebDriverWait wait = new WebDriverWait(webDriver, WAIT_TIMEOUT);
             String password = wait.until(
-                    ExpectedConditions.visibilityOfElementLocated(
-                            By.cssSelector("#resultid .verybigtext b"))).getText();
-            System.out.println("Задание 1 - сгенерированный пароль: " + password);
+                    ExpectedConditions.visibilityOfElementLocated(PASSWORD_RESULT_SELECTOR)).getText();
+
+            System.out.println("1) полученный пароль: " + password);
 
             Task2.run(webDriver);
             Task3.run(webDriver);

@@ -3,55 +3,57 @@ package com.mycompany.app;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class Task3 {
+public final class Task3 {
 
     private static final String METEO_URL =
             "https://api.open-meteo.com/v1/forecast?latitude=56&longitude=44&hourly=temperature_2m,rain"
                     + "&current=cloud_cover&timezone=Europe%2FMoscow&forecast_days=1&wind_speed_unit=ms";
+    private static final String FORECAST_TITLE =
+            "3) прогноз погоды (Нижний Новгород, сутки)";
+    private static final String FORECAST_HEADER =
+            "| № | Дата/время | Температура | Осадки (мм) |\n"
+                    + "| -- | ------------- | ----------- | ------------ |\n";
+
+    private Task3() {
+    }
 
     public static void run(WebDriver webDriver) throws Exception {
         webDriver.get(METEO_URL);
-        WebElement elem;
-        try {
-            elem = webDriver.findElement(By.tagName("pre"));
-        } catch (NoSuchElementException e) {
-            elem = webDriver.findElement(By.tagName("body"));
-        }
-        String jsonStr = elem.getText();
-        JSONParser parser = new JSONParser();
-        JSONObject root = (JSONObject) parser.parse(jsonStr);
+
+        String jsonStr = PageTextReader.read(webDriver);
+        JSONObject root = (JSONObject) new JSONParser().parse(jsonStr);
         JSONObject hourly = (JSONObject) root.get("hourly");
         JSONArray times = (JSONArray) hourly.get("time");
         JSONArray temps = (JSONArray) hourly.get("temperature_2m");
         JSONArray rains = (JSONArray) hourly.get("rain");
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("| № | Дата/время | Температура | Осадки (мм) |\n");
-        sb.append("| -- | ------------- | ----------- | ------------ |\n");
+        StringBuilder forecastTable = new StringBuilder();
+        forecastTable.append(FORECAST_HEADER);
 
-        System.out.println("Задание 3 - прогноз погоды (Нижний Новгород, сутки)");
-        System.out.print(sb);
+        System.out.println(FORECAST_TITLE);
+        System.out.print(forecastTable);
 
         for (int i = 0; i < times.size(); i++) {
-            String row = String.format("| %d | %s | %s | %s |\n",
-                    i + 1,
-                    times.get(i),
-                    temps.get(i),
-                    rains.get(i));
+            String row = formatForecastRow(i, times, temps, rains);
             System.out.print(row);
-            sb.append(row);
+            forecastTable.append(row);
         }
 
         Files.createDirectories(Paths.get("result"));
-        Files.write(Paths.get("result", "forecast.txt"), sb.toString().getBytes(StandardCharsets.UTF_8));
+        Files.writeString(Paths.get("result", "forecast.txt"), forecastTable.toString(), StandardCharsets.UTF_8);
+    }
+
+    private static String formatForecastRow(int index, JSONArray times, JSONArray temps, JSONArray rains) {
+        return String.format("| %d | %s | %s | %s |\n",
+                index + 1,
+                times.get(index),
+                temps.get(index),
+                rains.get(index));
     }
 }
